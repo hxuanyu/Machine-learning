@@ -30,13 +30,23 @@ Theta1_grad = zeros(size(Theta1));
 Theta2_grad = zeros(size(Theta2));
 
 X = [ones(m, 1) X];
+%fprintf("x.size = [%d, %d]\n", size(X, 1), size(X, 2));
+%fprintf("input_layer_size = %d, hidden_layer_size = %d, num_labels = %d\n", input_layer_size, hidden_layer_size, num_labels);
+%fprintf("Theta1.size = [%d, %d], Theta2.size = [%d, %d]\n", size(Theta1, 1), size(Theta1, 2), size(Theta2, 1), size(Theta2, 2));
+
+delta3 = zeros(num_labels, 1); % CORRECT
+delta2 = zeros(size(Theta2, 2) - 1, 1);
+level2 = zeros(size(Theta2));
+level1 = zeros(size(Theta1));
+
 for i=1:m
     singleX = X(i, :);
+    a1 = singleX';
     z2 = Theta1 * singleX';
-    a2 = 1 ./ (1 + exp(-z2));
+    a2 = sigmoid(z2);
     a2 = [1; a2];
     z3 = Theta2 * a2;
-    a3 = 1 ./ (1 + exp(-z3));
+    a3 = sigmoid(z3);
     localy = zeros(num_labels, 1);
     if (y(i) == 0)
         localy(num_labels) = 1;
@@ -44,8 +54,22 @@ for i=1:m
         localy(y(i)) = 1;
     endif
 
+    delta3 = a3 - localy;
+
+    % step 3
+    temp = Theta2' * delta3;
+    delta2 = temp(2:end) .* sigmoidGradient(z2);
+
+    level2 = level2 + delta3 * a2';
+    level1 = level1 + delta2 * a1';
+
     J = J - (localy' * log(a3) + (1 - localy)' * log(1-a3));
 endfor
+
+Theta2_grad = (level2 + lambda * Theta2)/m;
+Theta1_grad = (level1 + lambda * Theta1)/m;
+Theta2_grad(:, 1) = Theta2_grad(:, 1) - lambda * Theta2(:, 1) / m;
+Theta1_grad(:, 1) = Theta1_grad(:, 1) - lambda * Theta1(:, 1) / m;
 
 J = J / m;
 
@@ -55,6 +79,9 @@ reg = reg + sum(sumsq(Theta2(:, 2:end)));
 reg = reg * lambda / (2 * m);
 J = J + reg;
 
+% gradient
+
+grad = [Theta1_grad(:); Theta2_grad(:)];
 
 % ====================== YOUR CODE HERE ======================
 % Instructions: You should complete the code by working through the
