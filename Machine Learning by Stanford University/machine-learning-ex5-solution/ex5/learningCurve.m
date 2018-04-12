@@ -62,9 +62,7 @@ for i = 1:m
   error_train(i) = j;
   [j, g] = linearRegCostFunction(Xval, yval, theta, 0);
   error_val(i) = j;
-
-  %error_train(i) = sumsq(trainx* theta - trainy) / (2 * length(trainy));
-  %error_val(i) = sumsq(Xval* theta - yval) / (2 * length(yval));
+  % length(yval) never changes, so don't use i as yval size
 end
 
 
